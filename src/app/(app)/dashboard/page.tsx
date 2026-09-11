@@ -1,6 +1,7 @@
 import { requireUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { LogoutButton } from "@/components/LogoutButton";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const userId = await requireUserId();
@@ -21,7 +22,12 @@ export default async function DashboardPage() {
     <div className="p-4 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Painel</h1>
-        <LogoutButton />
+        <div className="flex items-center gap-4">
+          <Link href="/billing" className="text-sm text-slate-400 underline underline-offset-2">
+            Plano
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       <section>
