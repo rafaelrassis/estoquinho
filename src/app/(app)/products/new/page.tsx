@@ -5,11 +5,20 @@ import { useRouter } from "next/navigation";
 export default function NewProductPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", sku: "", cost: "", price: "", lowStockAt: "5" });
+  const [photo, setPhoto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhoto(reader.result as string);
+    reader.readAsDataURL(file);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -26,6 +35,7 @@ export default function NewProductPage() {
         costCents: Math.round(parseFloat(form.cost.replace(",", ".") || "0") * 100),
         priceCents: Math.round(parseFloat(form.price.replace(",", ".") || "0") * 100),
         lowStockAt: parseInt(form.lowStockAt || "5", 10),
+        photoUrl: photo,
       }),
     });
 
@@ -82,6 +92,25 @@ export default function NewProductPage() {
           onChange={(e) => set("lowStockAt", e.target.value)}
           className="w-full rounded-lg bg-slate-900 border border-slate-800 px-4 py-3"
         />
+
+        <label className="flex items-center gap-3">
+          <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt="Foto do produto" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl">📷</span>
+            )}
+          </div>
+          <span className="text-sm text-slate-400">Tirar/escolher foto</span>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onPhotoChange}
+            className="hidden"
+          />
+        </label>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 

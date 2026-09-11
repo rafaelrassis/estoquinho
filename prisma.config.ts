@@ -3,4 +3,7 @@ import path from "node:path";
 
 export default defineConfig({
   schema: path.join(__dirname, "prisma", "schema.prisma"),
+  migrations: {
+    seed: "tsx prisma/seed.ts",
+  },
 });

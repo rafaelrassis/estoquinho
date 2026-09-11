@@ -7,9 +7,13 @@ export async function POST(req: Request) {
   const body = await req.json(); // { productId, type: 'ENTRADA'|'SAIDA'|'AJUSTE', quantity, note? }
 
   const { productId, type, quantity, note } = body;
+  const validType = type === "ENTRADA" || type === "SAIDA" || type === "AJUSTE";
 
-  if (!productId || !type || !quantity || quantity <= 0) {
+  if (!productId || !validType || typeof quantity !== "number" || quantity === 0) {
     return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+  }
+  if (type !== "AJUSTE" && quantity < 0) {
+    return NextResponse.json({ error: "Quantidade deve ser positiva" }, { status: 400 });
   }
 
   const delta =
@@ -29,7 +33,13 @@ export async function POST(req: Request) {
       });
 
       const movement = await tx.stockMovement.create({
-        data: { productId, userId, type, quantity: Math.abs(quantity), note },
+        data: {
+          productId,
+          userId,
+          type,
+          quantity: type === "AJUSTE" ? quantity : Math.abs(quantity),
+          note,
+        },
       });
 
       return { updated, movement };

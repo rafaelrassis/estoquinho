@@ -1,10 +1,18 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-type Props = { id: string; name: string; sku: string; stockQty: number; lowStockAt: number };
+type Props = {
+  id: string;
+  name: string;
+  sku: string;
+  stockQty: number;
+  lowStockAt: number;
+  photoUrl?: string | null;
+};
 
-export function ProductRow({ id, name, sku, stockQty, lowStockAt }: Props) {
+export function ProductRow({ id, name, sku, stockQty, lowStockAt, photoUrl }: Props) {
   const router = useRouter();
   const [qty, setQty] = useState(stockQty);
   const [busy, setBusy] = useState(false);
@@ -32,13 +40,25 @@ export function ProductRow({ id, name, sku, stockQty, lowStockAt }: Props) {
 
   return (
     <div
-      className={`flex items-center justify-between rounded-lg border px-4 py-3 bg-slate-900 ${
+      className={`flex items-center justify-between rounded-lg border px-3 py-3 bg-slate-900 ${
         low ? "border-amber-900/50" : "border-slate-800"
       }`}
     >
-      <div className="min-w-0">
-        <p className="font-medium truncate">{name}</p>
-        <p className="text-xs text-slate-500">{sku}</p>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-11 h-11 rounded-lg bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={photoUrl} alt={name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-lg">📦</span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="font-medium truncate">{name}</p>
+          <Link href={`/products/${id}/adjust`} className="text-xs text-slate-500 underline underline-offset-2">
+            {sku} · ajustar
+          </Link>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 shrink-0">

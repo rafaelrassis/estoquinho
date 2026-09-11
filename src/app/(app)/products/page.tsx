@@ -15,7 +15,7 @@ export default async function ProductsPage() {
       {products.length === 0 && (
         <p className="text-sm text-slate-500">Nenhum produto cadastrado ainda.</p>
       )}
-      {products.map((p: { id: string; name: string; sku: string; stockQty: number; lowStockAt: number }) => (
+      {products.map((p: { id: string; name: string; sku: string; stockQty: number; lowStockAt: number; photoUrl: string | null }) => (
         <ProductRow
           key={p.id}
           id={p.id}
@@ -23,6 +23,7 @@ export default async function ProductsPage() {
           sku={p.sku}
           stockQty={p.stockQty}
           lowStockAt={p.lowStockAt}
+          photoUrl={p.photoUrl}
         />
       ))}
     </div>
