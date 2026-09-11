@@ -55,13 +55,16 @@ export function ProductRow({ id, name, sku, stockQty, lowStockAt, photoUrl }: Pr
         </div>
         <div className="min-w-0">
           <p className="font-medium truncate">{name}</p>
-          <p className="text-xs text-slate-500 flex gap-2">
+          <p className="text-xs text-slate-500 flex flex-wrap gap-x-2 gap-y-0.5">
             <span>{sku}</span>
             <Link href={`/products/${id}/edit`} className="underline underline-offset-2">
               editar
             </Link>
             <Link href={`/products/${id}/adjust`} className="underline underline-offset-2">
               ajustar
+            </Link>
+            <Link href={`/products/${id}/history`} className="underline underline-offset-2">
+              histórico
             </Link>
           </p>
         </div>
