@@ -53,6 +53,11 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full rounded-lg bg-slate-900 border border-slate-800 px-4 py-3 text-base"
         />
+        <p className="text-right -mt-2">
+          <Link href="/forgot-password" className="text-xs text-slate-400 underline underline-offset-2">
+            Esqueci minha senha
+          </Link>
+        </p>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
