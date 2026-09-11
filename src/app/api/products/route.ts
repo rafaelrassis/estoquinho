@@ -1,14 +1,33 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/products - lista produtos do dono logado
+const PAGE_SIZE = 30;
+
+// GET /api/products?q=&cursor= - lista paginada, com busca por nome/SKU
 export async function GET(req: Request) {
   const userId = req.headers.get("x-user-id")!;
+  const { searchParams } = new URL(req.url);
+  const q = searchParams.get("q")?.trim();
+  const cursor = searchParams.get("cursor") || undefined;
+
   const products = await prisma.product.findMany({
-    where: { userId, active: true },
+    where: {
+      userId,
+      active: true,
+      ...(q
+        ? { OR: [{ name: { contains: q, mode: "insensitive" } }, { sku: { contains: q, mode: "insensitive" } }] }
+        : {}),
+    },
     orderBy: { name: "asc" },
+    take: PAGE_SIZE + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   });
-  return NextResponse.json(products);
+
+  const hasMore = products.length > PAGE_SIZE;
+  const page = hasMore ? products.slice(0, PAGE_SIZE) : products;
+  const nextCursor = hasMore ? page[page.length - 1].id : null;
+
+  return NextResponse.json({ products: page, nextCursor });
 }
 
 // POST /api/products - cria produto

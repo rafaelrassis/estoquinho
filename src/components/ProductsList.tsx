@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ProductRow } from "@/components/ProductRow";
 
 type Product = {
@@ -11,16 +11,43 @@ type Product = {
   photoUrl: string | null;
 };
 
-export function ProductsList({ products }: { products: Product[] }) {
-  const [q, setQ] = useState("");
+type Props = { initialProducts: Product[]; initialNextCursor: string | null };
 
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    if (!term) return products;
-    return products.filter(
-      (p) => p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)
-    );
-  }, [products, q]);
+export function ProductsList({ initialProducts, initialNextCursor }: Props) {
+  const [q, setQ] = useState("");
+  const [products, setProducts] = useState(initialProducts);
+  const [nextCursor, setNextCursor] = useState(initialNextCursor);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestId = useRef(0);
+
+  // busca com debounce: toda mudança de termo reinicia a paginação
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      const myId = ++requestId.current;
+      setLoading(true);
+      const res = await fetch(`/api/products?q=${encodeURIComponent(q)}`);
+      if (myId !== requestId.current) return; // resposta antiga, ignora
+      const data = await res.json();
+      setProducts(data.products);
+      setNextCursor(data.nextCursor);
+      setLoading(false);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [q]);
+
+  async function loadMore() {
+    if (!nextCursor || loading) return;
+    setLoading(true);
+    const res = await fetch(`/api/products?q=${encodeURIComponent(q)}&cursor=${nextCursor}`);
+    const data = await res.json();
+    setProducts((prev) => [...prev, ...data.products]);
+    setNextCursor(data.nextCursor);
+    setLoading(false);
+  }
 
   return (
     <div className="space-y-3">
@@ -31,13 +58,13 @@ export function ProductsList({ products }: { products: Product[] }) {
         className="w-full rounded-lg bg-slate-900 border border-slate-800 px-4 py-3"
       />
 
-      {filtered.length === 0 && (
+      {products.length === 0 && !loading && (
         <p className="text-sm text-slate-500">
-          {products.length === 0 ? "Nenhum produto cadastrado ainda." : "Nenhum produto encontrado."}
+          {q ? "Nenhum produto encontrado." : "Nenhum produto cadastrado ainda."}
         </p>
       )}
 
-      {filtered.map((p) => (
+      {products.map((p) => (
         <ProductRow
           key={p.id}
           id={p.id}
@@ -48,6 +75,16 @@ export function ProductsList({ products }: { products: Product[] }) {
           photoUrl={p.photoUrl}
         />
       ))}
+
+      {nextCursor && (
+        <button
+          onClick={loadMore}
+          disabled={loading}
+          className="w-full rounded-lg border border-slate-800 text-slate-300 py-3 disabled:opacity-50"
+        >
+          {loading ? "Carregando..." : "Carregar mais"}
+        </button>
+      )}
     </div>
   );
 }

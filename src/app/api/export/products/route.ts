@@ -24,7 +24,7 @@ export async function GET(req: Request) {
   ]);
 
   const csv = [header, ...rows].map((row) => row.map(csvEscape).join(";")).join("\n");
-  const bom = "﻿"; // Excel abre acentuação certo com BOM
+  const bom = "\uFEFF"; // Excel abre acentuação certo com BOM
 
   return new Response(bom + csv, {
     headers: {
