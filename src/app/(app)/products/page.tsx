@@ -11,7 +11,15 @@ export default async function ProductsPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-semibold mb-3">Produtos</h1>
+      <div className="flex items-center justify-between mb-3">
+        <h1 className="text-xl font-semibold">Produtos</h1>
+        <a
+          href="/api/export/products"
+          className="text-sm text-slate-400 underline underline-offset-2"
+        >
+          exportar CSV
+        </a>
+      </div>
       <ProductsList products={products} />
     </div>
   );
