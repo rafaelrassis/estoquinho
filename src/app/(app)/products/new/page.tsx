@@ -53,6 +53,25 @@ export default function NewProductPage() {
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Novo produto</h1>
       <form onSubmit={onSubmit} className="space-y-3">
+        <label className="flex items-center gap-3">
+          <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+            {photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photo} alt="Foto do produto" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-2xl">📷</span>
+            )}
+          </div>
+          <span className="text-sm text-slate-400">Tirar/escolher foto</span>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onPhotoChange}
+            className="hidden"
+          />
+        </label>
+
         <input
           required
           placeholder="Nome"
@@ -92,25 +111,6 @@ export default function NewProductPage() {
           onChange={(e) => set("lowStockAt", e.target.value)}
           className="w-full rounded-lg bg-slate-900 border border-slate-800 px-4 py-3"
         />
-
-        <label className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-            {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo} alt="Foto do produto" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl">📷</span>
-            )}
-          </div>
-          <span className="text-sm text-slate-400">Tirar/escolher foto</span>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={onPhotoChange}
-            className="hidden"
-          />
-        </label>
 
         {error && <p className="text-red-400 text-sm">{error}</p>}
 
