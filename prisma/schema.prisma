@@ -33,6 +33,10 @@ model User {
   stripeCustomerId   String?
   subscriptionStatus String?  // active | past_due | canceled | null
 
+  // protecao contra forca bruta no login
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
   products  Product[]
 
   @@map("users")
