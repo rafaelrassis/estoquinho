@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { PhotoPicker } from "@/components/PhotoPicker";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -11,14 +12,6 @@ export default function NewProductPage() {
 
   function set<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
-  }
-
-  function onPhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPhoto(reader.result as string);
-    reader.readAsDataURL(file);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -53,25 +46,7 @@ export default function NewProductPage() {
     <div className="p-4">
       <h1 className="text-xl font-semibold mb-4">Novo produto</h1>
       <form onSubmit={onSubmit} className="space-y-3">
-        <label className="flex items-center gap-3">
-          <div className="w-16 h-16 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0">
-            {photo ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={photo} alt="Foto do produto" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-2xl">📷</span>
-            )}
-          </div>
-          <span className="text-sm text-slate-400">Tirar/escolher foto</span>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={onPhotoChange}
-            className="hidden"
-          />
-        </label>
-
+        <PhotoPicker value={photo} onChange={setPhoto} />
         <input
           required
           placeholder="Nome"

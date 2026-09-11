@@ -1,6 +1,6 @@
 import { requireUserId } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
-import { ProductRow } from "@/components/ProductRow";
+import { ProductsList } from "@/components/ProductsList";
 
 export default async function ProductsPage() {
   const userId = await requireUserId();
@@ -10,22 +10,9 @@ export default async function ProductsPage() {
   });
 
   return (
-    <div className="p-4 space-y-3">
-      <h1 className="text-xl font-semibold mb-2">Produtos</h1>
-      {products.length === 0 && (
-        <p className="text-sm text-slate-500">Nenhum produto cadastrado ainda.</p>
-      )}
-      {products.map((p: { id: string; name: string; sku: string; stockQty: number; lowStockAt: number; photoUrl: string | null }) => (
-        <ProductRow
-          key={p.id}
-          id={p.id}
-          name={p.name}
-          sku={p.sku}
-          stockQty={p.stockQty}
-          lowStockAt={p.lowStockAt}
-          photoUrl={p.photoUrl}
-        />
-      ))}
+    <div className="p-4">
+      <h1 className="text-xl font-semibold mb-3">Produtos</h1>
+      <ProductsList products={products} />
     </div>
   );
 }
