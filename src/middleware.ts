@@ -14,7 +14,7 @@ const PUBLIC_PATHS = [
   "/api/billing/webhook",
 ];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (
@@ -26,7 +26,7 @@ export function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  const session = token ? verifySession(token) : null;
+  const session = token ? await verifySession(token) : null;
 
   if (!session) {
     if (pathname.startsWith("/api")) {

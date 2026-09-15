@@ -6,7 +6,7 @@ import { verifySession, COOKIE_NAME } from "@/lib/auth";
 export default async function Home() {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
-  const session = token ? verifySession(token) : null;
+  const session = token ? await verifySession(token) : null;
   if (session) redirect("/dashboard");
 
   return (

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { name, email, passwordHash } });
 
-  const token = signSession(user.id);
+  const token = await signSession(user.id);
   const res = NextResponse.json({ id: user.id, name: user.name, email: user.email }, { status: 201 });
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
