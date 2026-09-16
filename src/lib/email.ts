@@ -23,3 +23,29 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     `,
   });
 }
+
+type LowStockItem = { name: string; sku: string; stockQty: number; lowStockAt: number };
+
+export async function sendLowStockDigest(to: string, items: LowStockItem[], appUrl: string) {
+  if (!resend) {
+    console.warn(`RESEND_API_KEY não configurado — digest de estoque baixo não enviado pra ${to}`);
+    return;
+  }
+  const rows = items
+    .map((p) => `<tr><td>${p.name}</td><td>${p.sku}</td><td>${p.stockQty}</td><td>${p.lowStockAt}</td></tr>`)
+    .join("");
+
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `⚠️ ${items.length} produto(s) com estoque baixo — Estoquinho`,
+    html: `
+      <p>Estes produtos estão no limite de estoque baixo ou abaixo dele:</p>
+      <table cellpadding="6" style="border-collapse:collapse">
+        <thead><tr><th align="left">Produto</th><th align="left">SKU</th><th align="left">Estoque</th><th align="left">Alerta</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p><a href="${appUrl}/products">Ver produtos no Estoquinho</a></p>
+    `,
+  });
+}
