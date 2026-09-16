@@ -24,6 +24,23 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   });
 }
 
+export async function sendWelcomeEmail(to: string, name: string) {
+  if (!resend) {
+    console.warn(`RESEND_API_KEY não configurado — e-mail de boas-vindas não enviado pra ${to}`);
+    return;
+  }
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: "Bem-vindo ao Estoquinho 👋",
+    html: `
+      <p>Oi, ${name}!</p>
+      <p>Sua conta no Estoquinho tá pronta. Cadastre seus primeiros produtos e comece a registrar
+      entradas e saídas direto do celular.</p>
+    `,
+  });
+}
+
 type LowStockItem = { name: string; sku: string; stockQty: number; lowStockAt: number };
 
 export async function sendLowStockDigest(to: string, items: LowStockItem[], appUrl: string) {

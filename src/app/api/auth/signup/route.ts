@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, signSession, COOKIE_NAME } from "@/lib/auth";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: Request) {
   const { name, email, password } = await req.json();
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
 
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { name, email, passwordHash } });
+
+  after(() => sendWelcomeEmail(user.email, user.name).catch((err) => console.error("Falha ao enviar e-mail de boas-vindas:", err)));
 
   const token = await signSession(user.id);
   const res = NextResponse.json({ id: user.id, name: user.name, email: user.email }, { status: 201 });
