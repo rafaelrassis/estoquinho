@@ -12,9 +12,10 @@ const PUBLIC_PATHS = [
   "/api/auth/forgot",
   "/api/auth/reset",
   "/api/billing/webhook",
+  "/api/cron/low-stock-digest",
 ];
 
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (
@@ -26,7 +27,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  const session = token ? await verifySession(token) : null;
+  const session = token ? verifySession(token) : null;
 
   if (!session) {
     if (pathname.startsWith("/api")) {

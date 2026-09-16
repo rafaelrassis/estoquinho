@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const token = await signSession(user.id);
+  const token = signSession(user.id);
   const res = NextResponse.json({ id: user.id, name: user.name, email: user.email });
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,

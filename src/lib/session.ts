@@ -7,7 +7,7 @@ import { verifySession, COOKIE_NAME } from "@/lib/auth";
 export async function requireUserId(): Promise<string> {
   const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
-  const session = token ? await verifySession(token) : null;
+  const session = token ? verifySession(token) : null;
   if (!session) redirect("/login");
   return session.sub;
 }

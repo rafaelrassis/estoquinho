@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getStripe } from "@/lib/stripe";
+import { stripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const userId = req.headers.get("x-user-id")!;
@@ -10,7 +10,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Nenhuma assinatura encontrada" }, { status: 404 });
   }
 
-  const stripe = getStripe();
   const origin = new URL(req.url).origin;
   const session = await stripe.billingPortal.sessions.create({
     customer: user.stripeCustomerId,

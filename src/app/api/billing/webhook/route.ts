@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getStripe, PRO_PRODUCT_LIMIT } from "@/lib/stripe";
+import { stripe, PRO_PRODUCT_LIMIT } from "@/lib/stripe";
 import type Stripe from "stripe";
 
 // Rota publica (fora do middleware de auth) - a seguranca vem da assinatura do Stripe, nao de cookie/sessao
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    event = getStripe().webhooks.constructEvent(body, signature!, secret);
+    event = stripe.webhooks.constructEvent(body, signature!, secret);
   } catch {
     return NextResponse.json({ error: "Assinatura inválida" }, { status: 400 });
   }
