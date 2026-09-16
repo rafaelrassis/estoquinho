@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { COOKIE_NAME } from "@/lib/constants";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-const COOKIE_NAME = "estoquinho_session";
 const TOKEN_TTL = "30d";
 
 export function hashPassword(plain: string) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { verifySession, COOKIE_NAME } from "@/lib/auth";
+import { COOKIE_NAME } from "@/lib/constants";
+import { verifySessionEdge } from "@/lib/auth-edge";
 
 const PUBLIC_PATHS = [
   "/login",
@@ -15,7 +16,7 @@ const PUBLIC_PATHS = [
   "/api/cron/low-stock-digest",
 ];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   if (
@@ -27,7 +28,7 @@ export function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get(COOKIE_NAME)?.value;
-  const session = token ? verifySession(token) : null;
+  const session = token ? await verifySessionEdge(token) : null;
 
   if (!session) {
     if (pathname.startsWith("/api")) {
