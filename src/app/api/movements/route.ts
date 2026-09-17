@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     type === "ENTRADA" ? quantity : type === "SAIDA" ? -quantity : quantity; // AJUSTE: quantidade já vem com sinal aplicado pelo cliente
 
   try {
-    const result = await prisma.$transaction(async (tx: typeof prisma) => {
+    const result = await prisma.$transaction(async (tx) => {
       const product = await tx.product.findFirst({ where: { id: productId, userId } });
       if (!product) throw new Error("NOT_FOUND");
 
