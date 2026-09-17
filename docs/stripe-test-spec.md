@@ -8,7 +8,11 @@ Nunca testar com chave `sk_live_`. No Stripe Dashboard, ativar **Test mode** e c
 - Developers → API keys → `sk_test_...`
 - Developers → Webhooks → endpoint apontando pra `https://estoquinho.vercel.app/api/billing/webhook`, eventos `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` → `whsec_...` de teste
 
-No Vercel, usar essas 3 variáveis (`STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`) no ambiente **Preview**, mantendo as de produção (`sk_live_`) só em **Production**. Testar via uma preview deployment (branch/PR), nunca direto em produção.
+O app tem um toggle de modo teste (`STRIPE_TEST_MODE=true`) que troca as chaves usadas em runtime, independente do ambiente Vercel:
+- `STRIPE_SECRET_KEY_TEST`, `STRIPE_PRICE_ID_TEST`, `STRIPE_WEBHOOK_SECRET_TEST` → usadas quando `STRIPE_TEST_MODE=true`
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` → produção (`sk_live_`), usadas quando o toggle está desligado
+
+Configurar as 4 variáveis de teste + `STRIPE_TEST_MODE=true` no ambiente **Preview** do Vercel (nunca em Production). Com o toggle ligado, a tela `/billing` mostra um aviso "Modo teste do Stripe ativo".
 
 Cartão de teste: `4242 4242 4242 4242`, validade futura qualquer, CVC qualquer, CEP qualquer.
 
