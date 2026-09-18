@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { stripe, stripePriceId } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const userId = req.headers.get("x-user-id")!;
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
 
-  const priceId = process.env.STRIPE_PRICE_ID;
+  const priceId = stripePriceId;
   if (!priceId) {
     return NextResponse.json({ error: "Cobrança não configurada (STRIPE_PRICE_ID ausente)" }, { status: 501 });
   }
