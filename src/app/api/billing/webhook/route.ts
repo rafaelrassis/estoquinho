@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { stripe, stripeWebhookSecret, PRO_PRODUCT_LIMIT } from "@/lib/stripe";
+import { stripe, PRO_PRODUCT_LIMIT, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe";
 import type Stripe from "stripe";
 
 // Rota publica (fora do middleware de auth) - a seguranca vem da assinatura do Stripe, nao de cookie/sessao
 export async function POST(req: Request) {
-  const secret = stripeWebhookSecret;
+  const secret = STRIPE_WEBHOOK_SECRET;
   if (!secret) {
     return NextResponse.json({ error: "Webhook não configurado" }, { status: 501 });
   }

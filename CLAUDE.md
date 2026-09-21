@@ -1,0 +1,44 @@
+# Estoquinho — contexto pro Claude Code
+
+Controle de estoque simples pra pequenos revendedores. Next.js 16 (App Router) + Prisma + PostgreSQL (Neon), deploy na Vercel.
+
+## ⚠️ Duas sessões Claude mexem neste repo
+Além do Claude Code, existe uma sessão no claude.ai (chat) trabalhando no mesmo repo, sem acesso de rede ao Neon/Prisma binaries/api.stripe.com — ela não roda `prisma generate`/`db push`/`build` de verdade nem chama a API do Stripe, só edita arquivos e valida com `tsc`/`eslint` locais (que não pegam mismatch de schema, já que o Prisma Client fica sem gerar). Ela entrega mudanças como zip pra aplicar manualmente — **esse arquivo já sumiu do repo uma vez** porque um zip não foi aplicado por completo. Se este arquivo estiver desatualizado ou ausente de novo, é sinal de que isso aconteceu — reconstruir a partir do histórico de commits e do estado real do projeto, não assumir que está tudo certo.
+
+**Antes de começar qualquer tarefa aqui: `git pull`.** Depois de qualquer mudança em `schema.prisma`, `middleware.ts` ou variáveis de ambiente: `npm run build` local antes de subir, pra pegar o que só aparece com o Prisma Client gerado de verdade.
+
+## Sincronia de schema
+Este projeto usa **`prisma db push`**, não `migrate dev`/`deploy` — não existe pasta `prisma/migrations`. Depois de editar `schema.prisma`:
+```bash
+export DATABASE_URL="<pooler>"
+export DIRECT_URL="<direta>"
+npx prisma db push
+```
+
+## Armadilhas já resolvidas (não reintroduzir)
+- **Middleware roda em Edge Runtime.** `jsonwebtoken`/`bcryptjs` usam APIs do Node que não existem lá.
+  - `src/lib/auth-edge.ts` tem `verifySessionEdge` usando `jose` (Web Crypto) — é o que o middleware usa.
+  - `src/lib/auth.ts` (jsonwebtoken/bcryptjs) é só pra rotas de API (Node runtime).
+  - `src/lib/constants.ts` tem `COOKIE_NAME` isolado, sem import de libs Node — importe daqui no middleware, nunca de `lib/auth.ts` (senão arrasta bcryptjs/jsonwebtoken pro bundle do Edge de novo).
+- **`prisma.$transaction(async (tx) => {...})`**: não anotar o tipo de `tx` manualmente. Deixa o TS inferir via contextual typing. Localmente (sem generate) isso aparece como `implicitly has an 'any' type` no `tsc` — é esperado e some depois do `db push`/`generate` de verdade; não é bug.
+- Reset de senha é via tabela `PasswordReset` (token hasheado em SHA256, TTL 1h, uso único) — não voltar pro esquema antigo baseado em JWT stateless.
+- Stripe tem modo teste embutido via env var (ver abaixo) — não hardcodar chave de teste no código nem trocar `STRIPE_SECRET_KEY` na mão pra testar.
+
+## Variáveis de ambiente (Vercel: Production + Preview + Development)
+- `DATABASE_URL` — Neon, **com** `-pooler` no host (runtime)
+- `DIRECT_URL` — Neon, **sem** `-pooler` (migrations/`db push`)
+- `JWT_SECRET` — sessão de login
+- `BLOB_READ_WRITE_TOKEN` — foto de produto (Vercel Blob, criado automático ao conectar o storage)
+- `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` — produção (live)
+- `STRIPE_TEST_MODE` — `"true"` faz `src/lib/stripe.ts` usar as 3 vars `_TEST` abaixo em vez das de produção
+- `STRIPE_SECRET_KEY_TEST`, `STRIPE_PRICE_ID_TEST`, `STRIPE_WEBHOOK_SECRET_TEST` — teste (ver `docs/stripe-test-spec.md`)
+- `RESEND_API_KEY`, `RESEND_FROM_EMAIL` — e-mail (reset de senha, boas-vindas, digest de estoque baixo). Sem domínio verificado no Resend, só entrega pro e-mail cadastrado na conta Resend.
+- `CRON_SECRET` — **obrigatória**, protege `/api/cron/low-stock-digest`. Sem ela, a rota fica sem checagem nenhuma (o código só valida o header se a var existir).
+- `NEXT_PUBLIC_APP_URL` — usado nos links dos e-mails
+
+## Stack e convenções
+- Preço/custo em **centavos** (`Int`), nunca float.
+- `Product.stockQty` é desnormalizado — toda escrita de estoque passa por `/api/movements` (transação atômica), nunca update direto na tabela.
+- Auth: cookie httpOnly com JWT, sem NextAuth. Um usuário dono por conta (sem multi-loja/multi-usuário na v1).
+- Mobile-first, PWA (manifest + service worker já configurados). Bottom nav de 3 abas.
+- `active: false` em vez de deletar produto (soft delete) — histórico de movimentação fica intacto.
