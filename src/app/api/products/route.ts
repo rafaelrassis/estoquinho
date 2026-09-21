@@ -35,14 +35,17 @@ export async function POST(req: Request) {
   const userId = req.headers.get("x-user-id")!;
   const body = await req.json();
 
-  // limite de plano (estrutura pronta, regra real fica pra depois)
-  const count = await prisma.product.count({ where: { userId, active: true } });
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (user && count >= user.planProductLimit) {
-    return NextResponse.json(
-      { error: `Limite de ${user.planProductLimit} produtos do plano atingido` },
-      { status: 402 }
-    );
+  // limite de plano so entra em vigor quando a cobranca estiver ativada (BILLING_ENABLED=true)
+  // fase atual: validar o produto sem trava, o codigo de cobranca fica pronto por baixo
+  if (process.env.BILLING_ENABLED === "true") {
+    const count = await prisma.product.count({ where: { userId, active: true } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (user && count >= user.planProductLimit) {
+      return NextResponse.json(
+        { error: `Limite de ${user.planProductLimit} produtos do plano atingido` },
+        { status: 402 }
+      );
+    }
   }
 
   const product = await prisma.product.create({

@@ -6,7 +6,8 @@ import Link from "next/link";
 export default async function DashboardPage() {
   const userId = await requireUserId();
 
-  const [products, recentSales] = await Promise.all([
+  const [me, products, recentSales] = await Promise.all([
+    prisma.user.findUniqueOrThrow({ where: { id: userId } }),
     prisma.product.findMany({ where: { userId, active: true } }),
     prisma.stockMovement.findMany({
       where: { userId, type: "SAIDA" },
@@ -16,6 +17,11 @@ export default async function DashboardPage() {
     }),
   ]);
 
+  const isAdmin = (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .includes(me.email.toLowerCase());
+
   const lowStock = products.filter((p: { stockQty: number; lowStockAt: number }) => p.stockQty <= p.lowStockAt);
 
   return (
@@ -23,6 +29,11 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Painel</h1>
         <div className="flex items-center gap-4">
+          {isAdmin && (
+            <Link href="/admin" className="text-sm text-slate-400 underline underline-offset-2">
+              Admin
+            </Link>
+          )}
           <Link href="/billing" className="text-sm text-slate-400 underline underline-offset-2">
             Plano
           </Link>
