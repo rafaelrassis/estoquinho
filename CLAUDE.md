@@ -42,3 +42,10 @@ npx prisma db push
 - Auth: cookie httpOnly com JWT, sem NextAuth. Um usuário dono por conta (sem multi-loja/multi-usuário na v1).
 - Mobile-first, PWA (manifest + service worker já configurados). Bottom nav de 3 abas.
 - `active: false` em vez de deletar produto (soft delete) — histórico de movimentação fica intacto.
+
+## Última auditoria (2026-09-21, Claude Code)
+- Build: OK no último deploy de produção da Vercel (commit `1b91c5b`, READY). Build local falha sem as env vars no shell — não é bug, é ambiente sem `.env`.
+- Schema: sem `prisma/migrations`; não foi possível confirmar 100% a sincronia com o Neon nesta auditoria (sem credenciais locais, não descriptografei env vars sensíveis via MCP).
+- **Pendência confirmada:** `STRIPE_PRICE_ID` (live) **não está configurado** no projeto Vercel hoje, só as vars `_TEST`. Com `STRIPE_TEST_MODE=false`, `/api/billing/checkout` retorna 501.
+- **Pendência confirmada:** `CRON_SECRET` **não está configurado** no projeto Vercel hoje — `/api/cron/low-stock-digest` está sem proteção.
+- Resend segue sem domínio próprio verificado (`onboarding@resend.dev`).
