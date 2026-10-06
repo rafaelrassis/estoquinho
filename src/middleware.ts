@@ -5,13 +5,7 @@ import { verifySessionEdge } from "@/lib/auth-edge";
 
 const PUBLIC_PATHS = [
   "/login",
-  "/signup",
-  "/forgot-password",
-  "/reset-password",
-  "/api/auth/login",
-  "/api/auth/signup",
-  "/api/auth/forgot",
-  "/api/auth/reset",
+  "/api/auth/google", // inclui /api/auth/google/callback
   "/api/billing/webhook",
   "/api/cron/low-stock-digest",
 ];

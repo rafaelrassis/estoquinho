@@ -16,30 +16,31 @@ npx prisma db push
 ```
 
 ## Armadilhas já resolvidas (não reintroduzir)
-- **Middleware roda em Edge Runtime.** `jsonwebtoken`/`bcryptjs` usam APIs do Node que não existem lá.
+- **Middleware roda em Edge Runtime.** `jsonwebtoken` usa APIs do Node que não existem lá.
   - `src/lib/auth-edge.ts` tem `verifySessionEdge` usando `jose` (Web Crypto) — é o que o middleware usa.
-  - `src/lib/auth.ts` (jsonwebtoken/bcryptjs) é só pra rotas de API (Node runtime).
-  - `src/lib/constants.ts` tem `COOKIE_NAME` isolado, sem import de libs Node — importe daqui no middleware, nunca de `lib/auth.ts` (senão arrasta bcryptjs/jsonwebtoken pro bundle do Edge de novo).
+  - `src/lib/auth.ts` (jsonwebtoken) é só pra rotas de API (Node runtime).
+  - `src/lib/constants.ts` tem `COOKIE_NAME` isolado, sem import de libs Node — importe daqui no middleware, nunca de `lib/auth.ts` (senão arrasta jsonwebtoken pro bundle do Edge de novo).
 - **`prisma.$transaction(async (tx) => {...})`**: não anotar o tipo de `tx` manualmente. Deixa o TS inferir via contextual typing. Localmente (sem generate) isso aparece como `implicitly has an 'any' type` no `tsc` — é esperado e some depois do `db push`/`generate` de verdade; não é bug.
-- Reset de senha é via tabela `PasswordReset` (token hasheado em SHA256, TTL 1h, uso único) — não voltar pro esquema antigo baseado em JWT stateless.
+- **Login é só Google** (OAuth code flow + PKCE em `src/lib/google.ts`, rotas `/api/auth/google` e `/callback`). Senha, cadastro e reset foram removidos. `User.passwordHash` (nullable), `failedLoginAttempts`, `lockedUntil` e a tabela `PasswordReset` ficaram no schema como legado (evita `--accept-data-loss`); remover numa rodada futura. Usuário existente é vinculado pelo e-mail do Google (verificado) no primeiro login.
 - Stripe tem modo teste embutido via env var (ver abaixo) — não hardcodar chave de teste no código nem trocar `STRIPE_SECRET_KEY` na mão pra testar.
 
 ## Variáveis de ambiente (Vercel: Production + Preview + Development)
 - `DATABASE_URL` — Neon, **com** `-pooler` no host (runtime)
 - `DIRECT_URL` — Neon, **sem** `-pooler` (migrations/`db push`)
 - `JWT_SECRET` — sessão de login
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` — login Google. Redirect URI autorizada no Google Cloud: `<NEXT_PUBLIC_APP_URL>/api/auth/google/callback`
 - `BLOB_READ_WRITE_TOKEN` — foto de produto (Vercel Blob, criado automático ao conectar o storage)
 - `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET` — produção (live)
 - `STRIPE_TEST_MODE` — `"true"` faz `src/lib/stripe.ts` usar as 3 vars `_TEST` abaixo em vez das de produção
 - `STRIPE_SECRET_KEY_TEST`, `STRIPE_PRICE_ID_TEST`, `STRIPE_WEBHOOK_SECRET_TEST` — teste (ver `docs/stripe-test-spec.md`)
-- `RESEND_API_KEY`, `RESEND_FROM_EMAIL` — e-mail (reset de senha, boas-vindas, digest de estoque baixo). Sem domínio verificado no Resend, só entrega pro e-mail cadastrado na conta Resend.
+- `RESEND_API_KEY`, `RESEND_FROM_EMAIL` — e-mail (boas-vindas, digest de estoque baixo). Sem domínio verificado no Resend, só entrega pro e-mail cadastrado na conta Resend.
 - `CRON_SECRET` — **obrigatória**, protege `/api/cron/low-stock-digest`. Sem ela, a rota fica sem checagem nenhuma (o código só valida o header se a var existir).
 - `NEXT_PUBLIC_APP_URL` — usado nos links dos e-mails
 
 ## Stack e convenções
 - Preço/custo em **centavos** (`Int`), nunca float.
 - `Product.stockQty` é desnormalizado — toda escrita de estoque passa por `/api/movements` (transação atômica), nunca update direto na tabela.
-- Auth: cookie httpOnly com JWT, sem NextAuth. Um usuário dono por conta (sem multi-loja/multi-usuário na v1).
+- Auth: Google OAuth manual + cookie httpOnly com JWT (sem NextAuth). Um usuário dono por conta (sem multi-loja/multi-usuário na v1).
 - Mobile-first, PWA (manifest + service worker já configurados). Bottom nav de 3 abas.
 - `active: false` em vez de deletar produto (soft delete) — histórico de movimentação fica intacto.
 
