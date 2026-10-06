@@ -6,7 +6,6 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [unavailable, setUnavailable] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -18,7 +17,6 @@ export default function ForgotPasswordPage() {
     });
     const body = await res.json().catch(() => ({}));
     setLoading(false);
-    if (body.unavailable) setUnavailable(true);
     setMessage(body.message ?? "Se existir uma conta com esse e-mail, enviamos um link de redefinição.");
   }
 
@@ -31,7 +29,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {message ? (
-          <p className={`text-sm text-center ${unavailable ? "text-amber-400" : "text-emerald-400"}`}>{message}</p>
+          <p className="text-sm text-emerald-400 text-center">{message}</p>
         ) : (
           <form onSubmit={onSubmit} className="space-y-4">
             <input

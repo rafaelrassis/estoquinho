@@ -9,10 +9,9 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const FROM = process.env.RESEND_FROM_EMAIL || "Estoquinho <onboarding@resend.dev>";
 
 export async function sendWelcomeEmail(to: string, name: string) {
-  if (!EMAIL_ENABLED) return { skipped: true };
   if (!resend) {
     console.warn(`RESEND_API_KEY não configurado — e-mail de boas-vindas não enviado pra ${to}`);
-    return { skipped: true };
+    return;
   }
   await resend.emails.send({
     from: FROM,
@@ -27,10 +26,9 @@ export async function sendWelcomeEmail(to: string, name: string) {
 }
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  if (!EMAIL_ENABLED) return { skipped: true };
   if (!resend) {
     console.warn("RESEND_API_KEY não configurado — e-mail de reset não enviado. Link:", resetUrl);
-    return { skipped: true };
+    return;
   }
   await resend.emails.send({
     from: FROM,
