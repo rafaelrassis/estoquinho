@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendLowStockDigest } from "@/lib/email";
+import { EMAIL_ENABLED } from "@/lib/features";
 
 // Chamado 1x/dia pelo Vercel Cron (vercel.json). Vercel manda o CRON_SECRET
 // automaticamente no header Authorization quando a variavel esta configurada.
@@ -9,6 +10,8 @@ export async function GET(req: Request) {
   if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  if (!EMAIL_ENABLED) return NextResponse.json({ skipped: true });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(req.url).origin;
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
+import { EMAIL_ENABLED } from "@/lib/features";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -8,9 +9,10 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const FROM = process.env.RESEND_FROM_EMAIL || "Estoquinho <onboarding@resend.dev>";
 
 export async function sendWelcomeEmail(to: string, name: string) {
+  if (!EMAIL_ENABLED) return { skipped: true };
   if (!resend) {
     console.warn(`RESEND_API_KEY não configurado — e-mail de boas-vindas não enviado pra ${to}`);
-    return;
+    return { skipped: true };
   }
   await resend.emails.send({
     from: FROM,
@@ -25,9 +27,10 @@ export async function sendWelcomeEmail(to: string, name: string) {
 }
 
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
+  if (!EMAIL_ENABLED) return { skipped: true };
   if (!resend) {
     console.warn("RESEND_API_KEY não configurado — e-mail de reset não enviado. Link:", resetUrl);
-    return;
+    return { skipped: true };
   }
   await resend.emails.send({
     from: FROM,
@@ -44,9 +47,10 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
 type LowStockItem = { name: string; sku: string; stockQty: number; lowStockAt: number };
 
 export async function sendLowStockDigest(to: string, items: LowStockItem[], appUrl: string) {
+  if (!EMAIL_ENABLED) return { skipped: true };
   if (!resend) {
     console.warn(`RESEND_API_KEY não configurado — digest de estoque baixo não enviado pra ${to}`);
-    return;
+    return { skipped: true };
   }
   const rows = items
     .map((p) => `<tr><td>${p.name}</td><td>${p.sku}</td><td>${p.stockQty}</td><td>${p.lowStockAt}</td></tr>`)
