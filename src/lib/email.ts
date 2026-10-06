@@ -25,23 +25,6 @@ export async function sendWelcomeEmail(to: string, name: string) {
   });
 }
 
-export async function sendPasswordResetEmail(to: string, resetUrl: string) {
-  if (!resend) {
-    console.warn("RESEND_API_KEY não configurado — e-mail de reset não enviado. Link:", resetUrl);
-    return;
-  }
-  await resend.emails.send({
-    from: FROM,
-    to,
-    subject: "Redefinir senha — Estoquinho",
-    html: `
-      <p>Recebemos um pedido pra redefinir sua senha no Estoquinho.</p>
-      <p><a href="${resetUrl}">Clique aqui pra criar uma nova senha</a> (o link expira em 30 minutos).</p>
-      <p>Se você não pediu isso, pode ignorar este e-mail.</p>
-    `,
-  });
-}
-
 type LowStockItem = { name: string; sku: string; stockQty: number; lowStockAt: number };
 
 export async function sendLowStockDigest(to: string, items: LowStockItem[], appUrl: string) {

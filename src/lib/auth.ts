@@ -1,17 +1,8 @@
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { COOKIE_NAME } from "@/lib/constants";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 const TOKEN_TTL = "30d";
-
-export function hashPassword(plain: string) {
-  return bcrypt.hash(plain, 10);
-}
-
-export function verifyPassword(plain: string, hash: string) {
-  return bcrypt.compare(plain, hash);
-}
 
 export function signSession(userId: string) {
   if (!JWT_SECRET) throw new Error("JWT_SECRET não configurado");

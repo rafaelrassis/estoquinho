@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { verifySession, COOKIE_NAME } from "@/lib/auth";
 
 export default async function Home() {
@@ -21,20 +20,12 @@ export default async function Home() {
           </p>
         </div>
 
-        <div className="space-y-3">
-          <Link
-            href="/login"
-            className="block w-full rounded-lg bg-emerald-500 text-slate-950 font-medium py-3"
-          >
-            Entrar
-          </Link>
-          <Link
-            href="/signup"
-            className="block w-full rounded-lg border border-slate-800 text-slate-200 py-3"
-          >
-            Criar conta
-          </Link>
-        </div>
+        <a
+          href="/login"
+          className="block w-full rounded-lg bg-emerald-500 text-slate-950 font-medium py-3"
+        >
+          Entrar com Google
+        </a>
       </div>
     </main>
   );

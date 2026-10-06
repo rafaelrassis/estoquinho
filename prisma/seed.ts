@@ -1,18 +1,13 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
   const email = process.env.SEED_EMAIL ?? "dono@estoquinho.local";
-  const password = process.env.SEED_PASSWORD ?? "123456";
-
-  const passwordHash = await bcrypt.hash(password, 10);
-
   const user = await prisma.user.upsert({
     where: { email },
     update: {},
-    create: { name: "Dono da Loja", email, passwordHash },
+    create: { name: "Dono da Loja", email },
   });
 
   await prisma.product.upsert({
@@ -29,7 +24,7 @@ async function main() {
     },
   });
 
-  console.log(`Seed ok -> login: ${email} / senha: ${password}`);
+  console.log(`Seed ok -> ${email} (login via Google com esse e-mail)`);
 }
 
 main()
